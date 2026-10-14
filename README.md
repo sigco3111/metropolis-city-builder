@@ -2,6 +2,13 @@
 
 # 🏙️ 메트로폴리스 · 도시경영 시뮬레이션
 
+[![Play](https://img.shields.io/badge/▶_지금_플레이-GitHub_Pages-4fe3c1?style=for-the-badge)](https://sigco3111.github.io/metropolis-city-builder/)
+![HTML5](https://img.shields.io/badge/HTML5-Canvas-e34f26?style=flat-square&logo=html5&logoColor=white)
+![JavaScript](https://img.shields.io/badge/Vanilla-JavaScript-f7df1e?style=flat-square&logo=javascript&logoColor=black)
+![Single File](https://img.shields.io/badge/단일_파일-index.html-6fb8ff?style=flat-square)
+![No Build](https://img.shields.io/badge/빌드_없음-설치_없음-9be564?style=flat-square)
+![Korean UI](https://img.shields.io/badge/UI-한국어-ffb454?style=flat-square)
+
 **등각투영(Isometric) 도시 위에 도로를 깔고, 집과 일터를 세우고, 도시의 살림까지 책임지는 브라우저 도시경영 게임**
 
 설치 없이 브라우저에서 바로 · 단일 `index.html` · 한글 UI · 엔딩 없는 엔드리스 플레이
@@ -10,6 +17,14 @@
 
 `https://sigco3111.github.io/metropolis-city-builder/`
 
+<br>
+
+<a href="https://sigco3111.github.io/metropolis-city-builder/">
+  <img src="screenshots/8-spring-day.png" alt="벚꽃이 흩날리는 봄 낮의 메트로폴리스 도시 전경" width="100%">
+</a>
+
+<sub>벚꽃 핀 봄의 메트로폴리스 · S급 도시 · 인구 3천 명 · 랜드마크 5종 완공</sub>
+
 </div>
 
 ---
@@ -17,14 +32,15 @@
 ## 📖 목차
 
 1. [게임 소개](#-게임-소개)
-2. [빠르게 시작하기](#-빠르게-시작하기)
-3. [플레이 방법](#-플레이-방법)
-4. [전체 기능](#-전체-기능)
-5. [조작법 · 단축키](#%EF%B8%8F-조작법--단축키)
-6. [등급 체계와 특화 산업 수치표](#-등급-체계와-특화-산업-수치표)
-7. [기술 스택](#-기술-스택)
-8. [저장소 구성 · 로컬 실행](#-저장소-구성--로컬-실행)
-9. [출처](#-출처)
+2. [스크린샷](#-스크린샷)
+3. [빠르게 시작하기](#-빠르게-시작하기)
+4. [플레이 방법](#%EF%B8%8F-플레이-방법)
+5. [전체 기능](#-전체-기능)
+6. [조작법 · 단축키](#%EF%B8%8F-조작법--단축키)
+7. [등급 체계와 특화 산업 수치표](#-등급-체계와-특화-산업-수치표)
+8. [기술 스택](#%EF%B8%8F-기술-스택)
+9. [저장소 구성 · 로컬 실행](#-저장소-구성--로컬-실행)
+10. [출처](#-출처)
 
 ---
 
@@ -36,6 +52,28 @@
 - 🧠 **살아 있는 시뮬레이션** – 시민은 청년·장년·노년으로 나뉘고, 일자리·행복도·세율·서비스·사건에 따라 이사 들어오고 떠납니다.
 - 🏅 **성장의 보상** – 업적 28종, 기록실(도시 연대기), 도시 등급(B ~ SSS), 특화 산업과 수출 수익이 장기 목표가 됩니다.
 - 💾 **언제든 이어서** – 자동 저장과 수동 슬롯 3개. 새로고침해도 도시가 그대로 남습니다.
+
+---
+
+## 📸 스크린샷
+
+> 확장 지도(56×56)에서 키운 도시입니다. 관광 특화 · S등급 · 랜드마크 5종 완공 상태.
+
+<table>
+  <tr>
+    <td align="center" width="50%"><img src="screenshots/9-night.png" alt="네온과 창문 불빛이 켜진 메트로폴리스의 야경"><br><b>🌃 야경</b><br><sub>창문 불빛 · 네온 사인 · 랜드마크 조명</sub></td>
+    <td align="center" width="50%"><img src="screenshots/10-winter-snow.png" alt="눈이 내리는 겨울의 메트로폴리스"><br><b>❄️ 겨울 · 눈</b><br><sub>눈 덮인 도시와 얼어붙은 강</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="screenshots/11-growth-report.png" alt="도시 성장 리포트 패널"><br><b>🏅 성장 리포트</b></td>
+    <td align="center" width="25%"><img src="screenshots/12-industry.png" alt="특화 산업 패널"><br><b>🌾 특화 산업</b></td>
+    <td align="center" width="25%"><img src="screenshots/13-achievements.png" alt="업적 패널"><br><b>🏆 업적</b></td>
+    <td align="center" width="25%"><img src="screenshots/14-chronicle.png" alt="기록실 도시 연대기 패널"><br><b>📜 기록실</b></td>
+  </tr>
+</table>
 
 ---
 
@@ -111,6 +149,11 @@
 - **시간 속도**: ×1 · ×2 · ×4, 스페이스로 일시정지.
 - **사운드**: 잔잔한 합성음과 건설·사건 효과음(기본 꺼짐, `소리 켜기` 버튼으로 켜기).
 
+<p align="center">
+  <img src="screenshots/9-night.png" alt="야경" width="49%">
+  <img src="screenshots/10-winter-snow.png" alt="겨울 눈 내리는 도시" width="49%">
+</p>
+
 
 ### 🧑‍🤝‍🧑 6. 시민
 
@@ -122,6 +165,12 @@
 
 - **업적 28종**: 인구 · 흑자 · 행복도 · 랜드마크 · 지하철 · 공원 · 완전 고용 · 안전 도시 · 구역 · 재개발 · **S급 도시 · 특화 도시 · 수출 강국** 등. 달성 시 알림이 뜨고 진행도가 막대로 표시됩니다.
 - **기록실(도시 연대기)**: 도시 시작, 첫 건물, 인구 마일스톤, 업적, 계절·사건, 랜드마크, 재정 위기, 재개발, **등급 변동, 특화 산업 선택·변경**까지 주요 순간이 게임 내 날짜와 함께 최신 순으로 쌓입니다.
+
+<p align="center">
+  <img src="screenshots/13-achievements.png" alt="업적 패널" height="460">
+  &nbsp;&nbsp;
+  <img src="screenshots/14-chronicle.png" alt="기록실 패널" height="460">
+</p>
 
 ### 🔨 8. 재개발 · 노후화
 
@@ -136,6 +185,10 @@
 - **등급 변동 알림**: 월 결산 때 등급이 바뀌면 알림이 뜨고 **기록실에 기록**됩니다. (S급 도시 업적 연동)
 - **성장 리포트 패널**: 종합 점수와 등급 배지, 항목별 점수(예: 규모 14.5 / 40), **다음 등급까지 부족한 점수와 개선 팁**, 최근 36개월 **인구 · 자금 · 행복도 추이 그래프**와 변화 표를 보여 줍니다.
 
+<p align="center">
+  <img src="screenshots/11-growth-report.png" alt="도시 성장 리포트 패널" height="460">
+</p>
+
 ### 🌾 10. 특화 산업 · 수출 수익
 
 상단 **`특화 산업`** 버튼에서 도시의 주력 산업을 하나 고릅니다. 첫 선택은 **₩2,000**, 변경은 **₩5,000 + 90일 대기**.
@@ -148,6 +201,10 @@
 
 - 수출 수익은 위 시설 수에 **도시 규모 보정**(`1 + 인구/4000`, 인구 10,000명에서 상한)을 곱해 월 결산에 **'수출 수익'** 으로 더해지고, 상단 HUD 월 수입에도 `(수출 +₩…)` 로 표시됩니다.
 - 업적 연동: **특화 도시**(산업 선택) · **수출 강국**(누적 수출 수익 ₩50,000). 선택·변경은 기록실에 남습니다.
+
+<p align="center">
+  <img src="screenshots/12-industry.png" alt="특화 산업 패널" height="460">
+</p>
 
 ### 💾 11. 저장 · 불러오기
 
@@ -238,7 +295,7 @@
 metropolis-city-builder/
 ├── index.html      # 게임 전체 (HTML + CSS + JS)
 ├── README.md       # 이 문서
-└── README.en.md    # English README (보관)
+└── screenshots/    # README용 게임 스크린샷
 ```
 
 로컬에서 실행하려면 저장소를 내려받아 `index.html` 을 브라우저로 열면 됩니다. (별도 설치 · 서버 불필요)
