@@ -299,6 +299,15 @@
   #fin .note{ margin-top:4px; font-size:10px; color:var(--ink-dim); line-height:1.5; letter-spacing:.03em; }
   #fin .neg{ color:#FF9DB5; } #fin .pos{ color:var(--teal); }
   @media (max-width:760px){ #finBtn{ top:56px; left:18px; } #fin{ left:10px; top:92px; width:calc(100vw - 20px); max-height:calc(100vh - 260px); } }
+#tools{top:72px;max-width:min(950px,calc(100vw - 40px));}
+  #toolrow{gap:4px;} .tbtn{min-width:58px;padding:6px 8px;}
+  #hint{max-width:100%;white-space:normal;text-align:center;}
+  #civicPanel{position:fixed;right:22px;bottom:116px;width:272px;z-index:6;padding:12px 14px;border:1px solid rgba(79,227,193,.25);border-radius:12px;background:rgba(11,16,38,.82);backdrop-filter:blur(14px);font-size:11px;line-height:1.65;}
+  #civicPanel summary{cursor:pointer;color:var(--teal);font-size:12px;font-weight:600;}
+  #civicStats{margin-top:6px;color:var(--amber);letter-spacing:0;}
+  #civicState{color:var(--ink);} #civicPanel p,#civicCost{font-size:10px;color:var(--ink-dim);margin-top:4px;}
+  #civicLog{list-style:none;margin-top:7px;max-height:124px;overflow:auto;} #civicLog li{border-top:1px solid rgba(255,255,255,.08);padding:4px 0;font-size:10px;}
+  @media(max-width:760px){#tools{top:66px;max-width:calc(100vw - 16px);} .tbtn{min-width:48px;padding:5px;} .tbtn .tn{font-size:11px;} #civicPanel{right:10px;bottom:115px;width:170px;padding:8px;font-size:10px;} #civicLog{max-height:82px;}}
 </style>
 </head>
 <body>
@@ -327,7 +336,7 @@
     <div class="suncol">
       <div id="clock" class="mono">--:--</div>
       <div id="phase">—</div>
-      <button id="playBtn" title="일시정지 / 재시작 (스페이스)">일시정지</button>
+      <button id="playBtn" title="일시정지 / 계속 (스페이스)">일시정지</button>
       <div class="speedrow" id="speedrow"><button data-s="1" class="on">×1</button><button data-s="2">×2</button><button data-s="4">×4</button></div>
     </div>
   </div>
@@ -341,6 +350,11 @@
 <div id="hud" class="ui"><div id="money" class="mono">₩0</div><div id="counts" class="mono"></div>
   <div id="stats" class="mono"></div><div id="warn" class="mono"></div>
   <div id="goal"><div class="gt mono" id="gtxt"></div><div class="gbar"><div class="gfill" id="gfill"></div></div></div></div>
+<details id="civicPanel" class="ui" open><summary>도시 서비스 · 사건</summary>
+  <div id="civicStats" class="mono"></div><div id="civicState"></div>
+  <p>소방 반경 6칸 · 청소 시설 800명/개<br>정체가 높으면 도로 건설·확장(U)</p>
+  <div id="civicCost" class="mono"></div><ul id="civicLog"></ul>
+</details>
 <div id="zoom" class="ui"><button id="zin" aria-label="확대">+</button><button id="zout" aria-label="축소">−</button></div>
 
 <button id="finBtn" class="ui" aria-label="재정 패널">재정 <span style="opacity:.55">F</span></button>
@@ -348,7 +362,7 @@
   <h3>월 결산 (최근 12개월)</h3>
   <canvas id="finChart" width="528" height="240"></canvas>
   <div class="lg"><span><i style="background:#4FE3C1"></i>수입</span><span><i style="background:#FF5C8A"></i>지출</span><span id="finLast" class="mono"></span></div>
-  <h3>대출</h3>
+  <p id="finServices" class="mono" style="font-size:10px;line-height:1.6;color:var(--ink-dim);margin:8px 0"></p><h3>대출</h3>
   <div class="kv"><span>대출 잔액</span><b id="loanBal" class="mono">₩0</b></div>
   <div class="kv"><span>연 이자율</span><b class="mono">12% (월 1%)</b></div>
   <div class="kv"><span>다음 월 상환액</span><b id="loanPay" class="mono">₩0</b></div>
@@ -691,7 +705,9 @@ function generate(seedStr){
     office:{dist:DT,fl:8,col:'#8FB4D6',nm:'오피스'},
     school:{dist:OT,fl:2,col:'#E3C070',nm:'학교'},
     hospital:{dist:DT,fl:4,col:'#E9EEF2',nm:'병원'},
-    police:{dist:OT,fl:2,col:'#6E86B8',nm:'경찰서'}
+    police:{dist:OT,fl:2,col:'#6E86B8',nm:'경찰서'},
+    fire:{dist:OT,fl:2,col:'#D76C52',nm:'소방서'},
+    waste:{dist:IND,fl:2,col:'#67A991',nm:'청소 시설'}
   };
   function makeSpecial(kind,x,y){
     const sp=SPECIAL[kind];
@@ -705,7 +721,7 @@ function generate(seedStr){
     else if(kind==='school'){ b.tiers=[{x:x+0.06,y:y+0.06,w:0.88,d:0.88,f0:0,f1:2},{x:x+0.34,y:y+0.34,w:0.32,d:0.32,f0:2,f1:3}]; }
     else if(kind==='hospital'){ b.tiers=[{x:x+0.08,y:y+0.08,w:0.84,d:0.84,f0:0,f1:3},{x:x+0.2,y:y+0.2,w:0.6,d:0.6,f0:3,f1:4}]; }
     else if(kind==='office'){ b.tiers=[{x:x+0.1,y:y+0.1,w:0.8,d:0.8,f0:0,f1:6},{x:x+0.2,y:y+0.2,w:0.6,d:0.6,f0:6,f1:8}]; b.sign={col:TEAL,o:0.4,nseg:3,ph:1,broken:false}; }
-    else if(kind==='police'){ b.tiers=[{x:x+0.08,y:y+0.08,w:0.84,d:0.84,f0:0,f1:2}]; }
+    else if(kind==='police'||kind==='fire'||kind==='waste'){ b.tiers=[{x:x+0.08,y:y+0.08,w:0.84,d:0.84,f0:0,f1:2}]; }
     b.fl=b.tiers[b.tiers.length-1].f1;
     return b;
   }
@@ -797,7 +813,7 @@ function rebuildDerived(c){
   let pop=0; for(const b of c.buildings) if(b.kind==='house') pop+=b.fl*b.w*b.d*7.3;
   c.pop=Math.round(pop);
   c.maxDelay=c.buildings.reduce((m,b)=>Math.max(m,b.delay),0);
-  c.counts={house:0,shop:0,park:0,road:0,factory:0,office:0,school:0,hospital:0,police:0};
+  c.counts={house:0,shop:0,park:0,road:0,factory:0,office:0,school:0,hospital:0,police:0,fire:0,waste:0};
   for(const b of c.buildings) c.counts[b.kind]++;
   for(let i=0;i<N*N;i++){ if(T[i]===T_PARKG) c.counts.park++; else if(T[i]===T_ROAD) c.counts.road++; }
   if(c.adjRoad&&typeof recalcSim==='function'&&c===city) recalcSim();
@@ -809,7 +825,7 @@ function rebuildDerived(c){
    ========================================================================= */
 const DAY_SEC=1.2, DAYS_PER_MONTH=30;
 const TAX_PER_RES=6, TAX_PER_SHOP=40, TAX_PER_FACTORY=60, TAX_PER_OFFICE=110;
-const UPKEEP={road:1, park:4, house:2, shop:4, factory:14, office:16, school:9, hospital:18, police:10};
+const UPKEEP={road:1, park:4, house:2, shop:4, factory:14, office:16, school:9, hospital:18, police:10, fire:22, waste:28};
 const GOAL_POP=2000, GOAL_MONTHS=18;
 const JOBS_PER_SHOP=14, JOBS_FACTORY=45, JOBS_OFFICE=24, RES_PER_JOB=2.5;
 /* 행복도: 기준 50, 시설 영향(반경 안 거리에 따라 감쇠) */
@@ -819,8 +835,79 @@ const EFFECT={
   school:{r:5, amp:11, label:'행복도·입주 수요 상승'},
   hospital:{r:6, amp:11, label:'행복도 상승 · 인구 성장 가속'},
   police:{r:5, amp:9, label:'행복도 상승 · 상점 치안'},
-  park:{r:3, amp:3, label:'행복도 상승'}
+  park:{r:3, amp:3, label:'행복도 상승'},
+  fire:{r:6, amp:0, label:'화재 위험 감소 · 진압 지원'},
+  waste:{r:0, amp:0, label:'도시 전체 쓰레기 처리 · 800명당 1개 필요'}
 };
+/* 도시 서비스·사건 밸런스: 건설비는 TOOLS, 유지비는 UPKEEP */
+const CITY_BALANCE={fireRadius:6,wasteCapacity:800,wasteMaxPenalty:18,
+  roadCapacity:9,wideCapacity:18,trafficMaxPenalty:16,trafficComPenalty:0.30,
+  fireChance:0.18,coveredRisk:0.15,coveredLoss:0.03,uncoveredLoss:0.55,
+  fireRepair:180,fireLossCost:500,eventChance:0.28,eventMonths:3,
+  recessionTax:0.80,recessionDemand:0.82,boomTax:1.18,boomDemand:1.15,
+  festivalHappiness:8,epidemicHappiness:12,epidemicDemand:0.88,graceMonths:2};
+let civic={wide:new Set(),traffic:0,waste:0,fireCover:0,repair:0,economy:null,social:null,log:[],flash:null};
+function coveredBy(b,kind,r){ return city.buildings.some(s=>s.kind===kind&&s.conn&&Math.hypot(s.x-b.x,s.y-b.y)<=r); }
+function civicMetrics(){
+  let roadCap=0;
+  for(let i=0;i<N*N;i++) if(city.T[i]===T_ROAD||city.T[i]===T_BRIDGE) roadCap+=civic.wide.has(i)?CITY_BALANCE.wideCapacity:CITY_BALANCE.roadCapacity;
+  const load=sim.pop+city.buildings.reduce((n,b)=>n+(b.kind==='house'?b.fl*2:b.kind==='shop'?24:b.kind==='factory'?45:8),0);
+  civic.traffic=clamp(Math.round((load/Math.max(1,roadCap)-0.65)*70),0,100);
+  const wasteCap=city.buildings.filter(b=>b.kind==='waste'&&b.conn).length*CITY_BALANCE.wasteCapacity;
+  civic.waste=clamp(Math.round((sim.pop-wasteCap)/CITY_BALANCE.wasteCapacity*100),0,100);
+  const atRisk=city.buildings.filter(b=>b.kind!=='fire'&&b.kind!=='waste');
+  civic.fireCover=atRisk.length?Math.round(100*atRisk.filter(b=>coveredBy(b,'fire',CITY_BALANCE.fireRadius)).length/atRisk.length):100;
+}
+function civicLog(text){
+  civic.log.unshift({month:monthOf(),text}); civic.log=civic.log.slice(0,6);
+  showToast(text); renderCivic();
+}
+function renderCivic(){
+  if(!$('civicStats')) return;
+  $('civicStats').textContent='소방 '+civic.fireCover+'% · 쓰레기 '+civic.waste+'% · 정체 '+civic.traffic+'%';
+  $('civicState').textContent=(civic.economy?civic.economy.name+' '+civic.economy.left+'개월':'경기 보통')+' · '+(civic.social?civic.social.name+' '+civic.social.left+'개월':'사건 없음');
+  const ul=$('civicLog'); ul.replaceChildren();
+  for(const e of civic.log){ const li=document.createElement('li'); li.textContent=e.month+'개월차 · '+e.text; ul.appendChild(li); }
+  $('civicCost').textContent='다음 결산 복구비 ₩'+civic.repair.toLocaleString('en-US')+' · 확장도로 '+civic.wide.size+'칸';
+}
+function triggerCityEvent(type,target){
+  if(type==='fire'){
+    const candidates=city.buildings.filter(b=>!['fire','waste'].includes(b.kind));
+    const pool=candidates.filter(b=>!coveredBy(b,'fire',CITY_BALANCE.fireRadius)||Math.random()<CITY_BALANCE.coveredRisk);
+    const b=target||pool[Math.floor(Math.random()*pool.length)]; if(!b) return false;
+    const safe=coveredBy(b,'fire',CITY_BALANCE.fireRadius);
+    const lost=Math.random()<(safe?CITY_BALANCE.coveredLoss:CITY_BALANCE.uncoveredLoss);
+    civic.flash={x:b.x,y:b.y,until:performance.now()+6000};
+    civic.repair+=lost?CITY_BALANCE.fireLossCost:CITY_BALANCE.fireRepair;
+    if(lost){
+      hoverB=null; plaque.hidden=true; hoverTile=null;
+      sim.pop=Math.max(0,sim.pop-(b.occ||0));
+      city.buildings.splice(city.buildings.indexOf(b),1);
+      for(let y=b.y;y<b.y+b.d;y++)for(let x=b.x;x<b.x+b.w;x++){ city.BM[y*N+x]=null; city.T[y*N+x]=T_EMPTY; }
+      rebuildDerived(city); relayout(); staticDirty=true;
+    }
+    civicLog('🔥 '+b.name+' 화재 · '+(lost?'건물 소실':'진압 성공')+' · 복구비 ₩'+(lost?CITY_BALANCE.fireLossCost:CITY_BALANCE.fireRepair));
+  }else if(type==='recession'||type==='boom'){
+    civic.economy={type,name:type==='boom'?'경기 호황':'경기 침체',left:CITY_BALANCE.eventMonths};
+    civicLog(civic.economy.name+' · '+CITY_BALANCE.eventMonths+'개월 세수·수요 '+(type==='boom'?'상승':'감소'));
+  }else if(type==='festival'||type==='epidemic'){
+    civic.social={type,name:type==='festival'?'도시 축제':'전염병',left:2};
+    civicLog(type==='festival'?'🎉 도시 축제 · 2개월 행복도 +8':'🏥 전염병 · 2개월 행복도·수요 감소 (병원 반경 안 보호)');
+  }else return false;
+  recalcSim(); updateHud(); return true;
+}
+function rollCityEvents(){
+  for(const key of ['economy','social']) if(civic[key]&&--civic[key].left<=0){ const name=civic[key].name; civic[key]=null; civicLog(name+' 종료'); }
+  if(monthOf()<=CITY_BALANCE.graceMonths) return;
+  if(Math.random()<CITY_BALANCE.fireChance) triggerCityEvent('fire');
+  if(Math.random()<CITY_BALANCE.eventChance){
+    const types=[];
+    if(!civic.economy) types.push('recession','boom');
+    if(!civic.social) types.push('festival','epidemic');
+    if(types.length) triggerCityEvent(types[Math.floor(Math.random()*types.length)]);
+  }
+  recalcSim();
+}
 const POLICE_SHOP_BONUS=1.2;
 const TAX_BASE=10, LOAN_UNIT=10000, LOAN_MAX=50000, LOAN_RATE=0.01, LOAN_TERM=12;
 let rates={res:TAX_BASE, com:TAX_BASE, ind:TAX_BASE};
@@ -856,7 +943,7 @@ function computeHappiness(c){
     park=Math.min(park,12);
     h.hapNeg=Math.round(neg); h.hapPos=Math.round(pos+park);
     h.hapTax=Math.round((rates.res-TAX_BASE)*(rates.res>TAX_BASE?-1.6:-0.6));
-    h.hap=clamp(Math.round(HAP_BASE+neg+pos+park+h.hapTax),0,100);
+    h.hap=clamp(Math.round(HAP_BASE+neg+pos+park+h.hapTax-CITY_BALANCE.wasteMaxPenalty*civic.waste/100-CITY_BALANCE.trafficMaxPenalty*civic.traffic/100+(civic.social&&civic.social.type==='festival'?CITY_BALANCE.festivalHappiness:0)-(civic.social&&civic.social.type==='epidemic'&&!coveredBy(h,'hospital',EFFECT.hospital.r)?CITY_BALANCE.epidemicHappiness:0)),0,100);
   }
   for(const s of c.buildings){
     if(s.kind==='shop'){
@@ -874,7 +961,8 @@ function calcIncome(){
     else if(b.kind==='factory') ind+=TAX_PER_FACTORY*(rates.ind/TAX_BASE);
     else if(b.kind==='office') ind+=TAX_PER_OFFICE*(rates.ind/TAX_BASE);
   }
-  sim.resTax=Math.round(res); sim.comTax=Math.round(com); sim.indTax=Math.round(ind);
+  const em=civic.economy?(civic.economy.type==='boom'?CITY_BALANCE.boomTax:CITY_BALANCE.recessionTax):1;
+  sim.resTax=Math.round(res*em); sim.comTax=Math.round(com*em*(1-CITY_BALANCE.trafficComPenalty*civic.traffic/100)); sim.indTax=Math.round(ind*em);
   sim.estIncome=sim.resTax+sim.comTax+sim.indTax;
 }
 function loanInterest(){ return Math.round(loan.bal*LOAN_RATE); }
@@ -893,13 +981,15 @@ function recalcSim(){
     else if(b.kind==='office'){ upk+=UPKEEP.office; if(b.conn){ jobs+=JOBS_OFFICE*jobTaxMult(rates.ind); jobsHigh+=JOBS_OFFICE*jobTaxMult(rates.ind); } }
     else if(UPKEEP[b.kind]){ upk+=UPKEEP[b.kind]; if(b.kind==='hospital'&&b.conn) hosp++; }
   }
-  upk+=c.counts.road*UPKEEP.road+c.counts.park*UPKEEP.park;
+  upk+=c.counts.road*UPKEEP.road+c.counts.park*UPKEEP.park+civic.wide.size*2;
+  sim.pop=Math.min(sim.pop,cap);
+  civicMetrics();
   computeHappiness(c);
   let hs=0; for(const b of c.housesC) hs+=b.hap*b.cap;
   sim.avgHap=cap?Math.round(hs/cap):HAP_BASE;
   jobs=Math.round(jobs); jobsHigh=Math.round(jobsHigh);
   sim.cap=cap; sim.jobs=jobs; sim.jobsHigh=jobsHigh; sim.shops=shops; sim.hosp=hosp; sim.estUpkeep=upk;
-  sim.demand=Math.min(cap,Math.round(jobs*RES_PER_JOB*(0.5+sim.avgHap/100)));
+  sim.demand=Math.min(cap,Math.round(jobs*RES_PER_JOB*(0.5+sim.avgHap/100)*(civic.economy?(civic.economy.type==='boom'?CITY_BALANCE.boomDemand:CITY_BALANCE.recessionDemand):1)*(civic.social&&civic.social.type==='epidemic'?CITY_BALANCE.epidemicDemand:1)));
   sim.pop=Math.min(sim.pop,cap);
   distribute();
   calcIncome();
@@ -924,6 +1014,7 @@ function distribute(){
   for(const b of hs){ if(left<=0)break; if(b.occ<b.cap){ b.occ++; left--; } }
 }
 function simInit(){
+  civic={wide:new Set(),traffic:0,waste:0,fireCover:0,repair:0,economy:null,social:null,log:[],flash:null};
   rates={res:TAX_BASE,com:TAX_BASE,ind:TAX_BASE}; loan={bal:0,inst:0}; hist=[]; syncFinUi();
   sim.day=1; sim.acc=0; sim.lastIncome=0; sim.lastUpkeep=0; sim.goalState='run'; sim.unpaid=false; sim.pop=0;
   recalcSim();
@@ -933,25 +1024,29 @@ function simInit(){
 function monthOf(){ return Math.floor((sim.day-1)/DAYS_PER_MONTH)+1; }
 function stepDay(){
   sim.day++;
+  recalcSim();
   /* move-in / move-out */
   const d=sim.demand-sim.pop;
   if(d>0) sim.pop+=Math.max(1,Math.ceil(d*0.05*(1+0.4*Math.min(sim.hosp,4))));
   else if(d<0) sim.pop+=Math.min(-1,Math.floor(d*0.1));
   sim.pop=clamp(sim.pop,0,sim.cap);
-  distribute(); city.pop=sim.pop;
+  recalcSim(); city.pop=sim.pop;
   calcIncome();
   /* month end */
   if((sim.day-1)%DAYS_PER_MONTH===0){
-    calcIncome(); const inc=sim.estIncome, upk=sim.estUpkeep;
+    calcIncome(); const inc=sim.estIncome, upk=sim.estUpkeep, repair=civic.repair;
     const intr=loanInterest(), prin=loanPrincipalDue();
-    sim.lastIncome=inc; sim.lastUpkeep=upk+intr+prin;
-    const net=inc-upk-intr-prin;
+    sim.lastIncome=inc; sim.lastUpkeep=upk+intr+prin+repair;
+    const net=inc-upk-intr-prin-repair;
     const nm=money+net;
-    hist.push({m:monthOf()-1,inc:inc,exp:upk+intr+prin,upk:upk,intr:intr,prin:prin}); if(hist.length>12) hist.shift();
+    hist.push({m:monthOf()-1,inc:inc,exp:upk+intr+prin+repair,upk:upk,intr:intr,prin:prin,repair:repair}); if(hist.length>12) hist.shift();
     loan.bal=Math.max(0,loan.bal-prin); if(loan.bal===0) loan.inst=0;
     const dtxt=(intr+prin)>0?' · 대출상환 ₩'+(intr+prin).toLocaleString('en-US'):'';
     if(nm<0){ sim.unpaid=true; money=0; showToast((monthOf()-1)+'월 결산 · 자금 부족, 유지비·상환 일부 미납'+dtxt); }
     else { sim.unpaid=false; money=nm; showToast((monthOf()-1)+'월 결산 · 순익 '+(net>=0?'+':'-')+'₩'+Math.abs(net).toLocaleString('en-US')+dtxt); }
+    civic.repair=0;
+    civicLog((monthOf()-1)+'월 결산 · 순익 '+fmtW(net)+(repair?' · 복구비 '+fmtW(repair):''));
+    rollCityEvents();
     drawFin();
     $('money').classList.add('flash');
   }
@@ -969,8 +1064,9 @@ function advanceSim(dt){
   if(sim.acc>=DAY_SEC) sim.acc=0;
 }
 function updateSimHud(){
+  renderCivic();
   const m=monthOf(), dm=(sim.day-1)%DAYS_PER_MONTH+1;
-  const net=sim.estIncome-sim.estUpkeep-loanDue();
+  const net=sim.estIncome-sim.estUpkeep-loanDue()-civic.repair;
   const fmt=n=>(n<0?'-':'')+'₩'+Math.abs(n).toLocaleString('en-US');
   const low=money+net<0;
   $('stats').innerHTML='<b>'+m+'개월차 '+dm+'일</b><br>'+
@@ -978,6 +1074,7 @@ function updateSimHud(){
     '일자리 <b>'+sim.jobs.toLocaleString('en-US')+'</b>'+(sim.jobsHigh?' (고급 '+sim.jobsHigh+')':'')+' · 입주 수요 '+sim.demand.toLocaleString('en-US')+'<br>'+
     '평균 행복도 <b class="'+(sim.avgHap>=55?'hapgood':sim.avgHap<45?'hapbad':'')+'">'+sim.avgHap+'</b>'+(sim.hosp?' · 병원 성장 +'+Math.round(Math.min(sim.hosp,4)*40)+'%':'')+'<br>'+
     '월 수입 '+fmt(sim.estIncome)+' · 유지비 '+fmt(-sim.estUpkeep)+(loan.bal?'<br>대출상환 '+fmt(-loanDue())+' · 잔액 '+fmt(loan.bal):'')+'<br>'+
+    (civic.repair?'복구비 '+fmt(-civic.repair)+'<br>':'')+
     '월 순익 <span class="'+(net<0?'neg':'pos')+'">'+(net>=0?'+':'')+fmt(net)+'</span>';
   $('warn').textContent=(sim.unpaid?'⚠ 자금 바닥 · 유지비 미납 ':'')+((!sim.unpaid&&low)?'⚠ 다음 결산에 적자 예상':'');
   const g=$('goal'), pct=Math.min(100,Math.round(sim.pop/GOAL_POP*100));
@@ -1002,6 +1099,7 @@ function syncFinUi(){
   $('taxResV').textContent=rates.res+'%'; $('taxComV').textContent=rates.com+'%'; $('taxIndV').textContent=rates.ind+'%';
 }
 function updateFinInfo(){
+  if($('finServices')) $('finServices').textContent='소방·청소 유지비 '+fmtW(city.counts.fire*UPKEEP.fire+city.counts.waste*UPKEEP.waste)+' · 도로 확장 '+fmtW(civic.wide.size*2)+' · 복구비 '+fmtW(civic.repair);
   if(!document.getElementById('loanBal')) return;
   $('loanBal').textContent=fmtW(loan.bal);
   $('loanPay').textContent=fmtW(loanDue());
@@ -1009,7 +1107,7 @@ function updateFinInfo(){
   $('loanRepay').disabled=loan.bal<=0||money<Math.min(LOAN_UNIT,loan.bal);
   $('taxEst').textContent=fmtW(sim.resTax||0)+' / '+fmtW(sim.comTax||0)+' / '+fmtW(sim.indTax||0);
   const l=hist[hist.length-1];
-  $('finLast').textContent=l?(l.m+'월 순익 '+fmtW(l.inc-l.exp)):'첫 결산 대기 중';
+  $('finLast').textContent=l?(l.m+'월 순익 '+fmtW(l.inc-l.exp)+(l.repair?' · 복구비 '+fmtW(l.repair):'')):'첫 결산 대기 중';
 }
 function drawFin(){
   const cv=document.getElementById('finChart'); if(!cv) return;
@@ -1071,6 +1169,9 @@ const TOOLS={
   school:{name:'학교', cost:1200, key:'8', desc:'주변 5칸 행복도·입주 수요 상승'},
   hospital:{name:'병원', cost:2600, key:'9', desc:'주변 6칸 행복도 상승 · 인구 성장 가속'},
   police:{name:'경찰서', cost:1400, key:'0', desc:'주변 5칸 행복도 상승 · 상점 수입 +20%'},
+  fire:{name:'소방서',cost:1800,key:'s',desc:'반경 6칸 화재 위험 감소 · 유지비 ₩22/월'},
+  waste:{name:'청소 시설',cost:1600,key:'c',desc:'도시 전체 800명 처리 · 유지비 ₩28/월'},
+  wide:{name:'도로 확장',cost:180,key:'u',desc:'기존 도로 용량 2배 · 추가 유지비 ₩2/월'},
   demo:  {name:'철거', cost:50,  key:'5'}
 };
 const START_MONEY=20000;
@@ -1080,6 +1181,12 @@ function buildingAt(x,y){ return (x>=0&&y>=0&&x<N&&y<N)?city.BM[y*N+x]:null; }
 function canApply(t,x,y){
   if(x<0||y<0||x>=N||y>=N) return {ok:false,msg:'지도 밖입니다'};
   const i=y*N+x, tt=city.T[i], tl=TOOLS[t];
+  if(t==='wide'){
+    if(tt!==T_ROAD) return {ok:false,msg:'기존 도로를 클릭해 확장하세요'};
+    if(civic.wide.has(i)) return {ok:false,msg:'이미 확장된 도로입니다'};
+    if(money<tl.cost) return {ok:false,msg:'자금 부족 · ₩'+tl.cost+' 필요'};
+    return {ok:true,msg:'도로 확장 · ₩'+tl.cost+' · 용량 2배'};
+  }
   if(t==='demo'){
     if(city.BM[i]) return {ok:true,msg:'철거 · ₩'+tl.cost,what:'building'};
     if(tt===T_ROAD) return {ok:true,msg:'도로 철거 · ₩'+tl.cost,what:'road'};
@@ -1101,7 +1208,8 @@ function applyTool(t,x,y){
   const r=canApply(t,x,y);
   if(!r.ok) return r;
   const i=y*N+x, c=city, tl=TOOLS[t];
-  if(t==='demo'){
+  if(t==='wide'){ civic.wide.add(i); }
+  else if(t==='demo'){
     if(r.what==='building'){
       const b=c.BM[i];
       c.buildings.splice(c.buildings.indexOf(b),1);
@@ -1109,7 +1217,7 @@ function applyTool(t,x,y){
     }else if(r.what==='park'){
       c.T[i]=T_EMPTY;
       c.trees=c.trees.filter(tr=>!(tr.tx===x&&tr.ty===y));
-    }else c.T[i]=T_EMPTY;
+    }else { c.T[i]=T_EMPTY; civic.wide.delete(i); }
   }else{
     c.trees=c.trees.filter(tr=>!(tr.tx===x&&tr.ty===y));
     if(t==='road') c.T[i]=T_ROAD;
@@ -1336,9 +1444,9 @@ function heightScale(b,now){
   return 1-Math.pow(1-e,3);
 }
 function drawEmblem(g,b,pal){
-  const k=b.kind; if(!b.roofPt||(k!=='school'&&k!=='hospital'&&k!=='police'&&k!=='factory'&&k!=='office')) return;
+  const k=b.kind; if(!b.roofPt||(k!=='school'&&k!=='hospital'&&k!=='police'&&k!=='factory'&&k!=='office'&&k!=='fire'&&k!=='waste')) return;
   const p=b.roofPt, u=V.U, night=pal.night;
-  if(k==='hospital'){
+  if(k==='fire'||k==='waste'){ g.fillStyle=k==='fire'?'#FFC66D':'#E8FFF5'; g.font=Math.max(9,u*.5)+'px sans-serif'; g.textAlign='center'; g.fillText(k==='fire'?'S':'C',p[0],p[1]); g.textAlign='start'; }else if(k==='hospital'){
     const r=u*0.2;
     g.fillStyle=css(nightify([226,64,74],night)); g.fillRect(p[0]-r*0.4,p[1]-r*1.1,r*0.8,r*2.2); g.fillRect(p[0]-r*1.1,p[1]-r*0.4,r*2.2,r*0.8);
     const q=pr(b.x+0.5,b.y+0.94,1.7*V.FH);
@@ -1641,7 +1749,7 @@ function drawDynamic(now,dt){
     const glow=smooth(clamp((night-0.35)/0.3,0,1));
     if(!reduced&&simRun){ // agents advance unless reduced motion or paused
       for(const a of city.agents){
-        a.s+=a.dir*a.sp*dt;
+        a.s+=a.dir*a.sp*dt*(1-civic.traffic/140);
         if(a.s<0)a.s+=a.pl.len; if(a.s>=a.pl.len)a.s-=a.pl.len;
       }
     }
@@ -1774,6 +1882,9 @@ function drawDynamic(now,dt){
     }
   }
 
+  /* --- 사건 표식 및 확장도로 --- */
+  for(const i of civic.wide){ const p=pr(i%N+0.5,Math.floor(i/N)+0.5,0); g.fillStyle='rgba(255,198,109,.8)'; g.fillRect(p[0]-2,p[1]-1,4,2); }
+  if(civic.flash&&now<civic.flash.until){ const p=pr(civic.flash.x+0.5,civic.flash.y+0.5,3); g.fillStyle='rgba(255,92,138,.9)'; g.font='20px sans-serif'; g.fillText('🔥',p[0]-10,p[1]); }
   /* --- influence radius preview --- */
   {
     let src=null;
@@ -1863,7 +1974,7 @@ function updateHud(){
   const c=city.counts;
   updateSimHud();
   $('counts').textContent='주택 '+c.house+' · 상점 '+c.shop+' · 공원 '+c.park+' · 도로 '+c.road+
-    ((c.factory+c.office+c.school+c.hospital+c.police)?'\n공장 '+c.factory+' · 오피스 '+c.office+' · 학교 '+c.school+' · 병원 '+c.hospital+' · 경찰서 '+c.police:'');
+    ((c.factory+c.office+c.school+c.hospital+c.police)?'\n공장 '+c.factory+' · 오피스 '+c.office+' · 학교 '+c.school+' · 병원 '+c.hospital+' · 경찰서 '+c.police:'')+'\n소방서 '+c.fire+' · 청소 시설 '+c.waste;
 }
 function updatePlate(){
   plate.textContent='도시 Nº '+seed.toUpperCase()+' · 인구 '+city.pop.toLocaleString('en-US');
@@ -1948,7 +2059,7 @@ function dialFromEvent(e){
 /* play/pause */
 function setPlaying(p){
   playing=p;
-  playBtn.textContent=playing?'일시정지':'재시작';
+  playBtn.textContent=playing?'일시정지':'계속';
 }
 playBtn.addEventListener('click',()=>{ setPlaying(!playing); act(); });
 $('speedrow').addEventListener('click',e=>{
@@ -2014,7 +2125,7 @@ $('info').addEventListener('click',e=>{ if(e.target.id==='info') $('info').hidde
 document.addEventListener('mousemove',e=>{
   mouseX=e.clientX; mouseY=e.clientY; mouseMoved=true; act();
 });
-document.addEventListener('wheel',e=>{ if(e.target.closest&&e.target.closest('#info')) return; e.preventDefault(); zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*0.0016)); act(); },{passive:false});
+document.addEventListener('wheel',e=>{ if(e.target.closest&&e.target.closest('#info,#fin,#civicPanel')) return; e.preventDefault(); zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*0.0016)); act(); },{passive:false});
 function act(){ lastAct=performance.now(); }
 
 function plaqueExtra(b){
@@ -2024,6 +2135,8 @@ function plaqueExtra(b){
     case 'shop': return ' · 일자리 '+(JOBS_PER_SHOP+b.fl*2)+(b.safe?' · 치안 안정 +20%':'');
     case 'factory': return ' · 일자리 '+JOBS_FACTORY+' · '+EFFECT.factory.label+' (반경 '+EFFECT.factory.r+')';
     case 'office': return ' · 고급 일자리 '+JOBS_OFFICE+' · 세금 ₩'+TAX_PER_OFFICE;
+    case 'waste': return ' · 도시 전체 800명 처리 · 유지비 ₩28/월';
+    case 'fire': return ' · 반경 6칸 화재 보호 · 유지비 ₩22/월';
     case 'school': case 'hospital': case 'police': return ' · '+EFFECT[b.kind].label+' (반경 '+EFFECT[b.kind].r+')';
   }
   return '';
@@ -2119,7 +2232,7 @@ function zoomBy(f){ zoomAt(V.vw/2,V.vh/2,f); }
   $('zout').addEventListener('click',()=>{ zoomBy(1/1.25); act(); });
 })();
 let pd=null;
-const isUI=el=>el&&el.closest&&el.closest('#rail,#tools,#hud,#zoom,#infoBtn,#info,#finBtn,#fin');
+const isUI=el=>el&&el.closest&&el.closest('#rail,#tools,#hud,#zoom,#infoBtn,#info,#finBtn,#fin,#civicPanel');
 document.addEventListener('pointerdown',e=>{
   act();
   if(isUI(e.target)) return;
@@ -2203,6 +2316,7 @@ function frame(ts){
    BOOT
    ========================================================================= */
 function boot(){
+  if(matchMedia('(max-width:760px)').matches) $('civicPanel').open=false;
   reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduced) setPlaying(false);
   const h=decodeURIComponent(location.hash.slice(1));
@@ -2229,5 +2343,4 @@ window.addEventListener('error',ev=>{
 </script>
 </body>
 </html>
-
 
