@@ -308,6 +308,13 @@
   #civicState{color:var(--ink);} #civicPanel p,#civicCost{font-size:10px;color:var(--ink-dim);margin-top:4px;}
   #civicLog{list-style:none;margin-top:7px;max-height:124px;overflow:auto;} #civicLog li{border-top:1px solid rgba(255,255,255,.08);padding:4px 0;font-size:10px;}
   @media(max-width:760px){#tools{top:66px;max-width:calc(100vw - 16px);} .tbtn{min-width:48px;padding:5px;} .tbtn .tn{font-size:11px;} #civicPanel{right:10px;bottom:115px;width:170px;padding:8px;font-size:10px;} #civicLog{max-height:82px;}}
+
+  #immersion{margin-top:8px;padding-top:8px;border-top:1px solid #ffffff18;font-size:10px;line-height:1.7}
+  #immersion .atmo-row{display:flex;align-items:center;gap:6px;justify-content:space-between}
+  #weatherMode,#soundBtn{background:#121c35;color:var(--ink);border:1px solid #ffffff28;border-radius:5px;font:inherit;padding:4px 6px;cursor:pointer}
+  #weatherMode option{background:#121c35} #weatherImpact,#growthStatus{color:var(--ink-dim)}
+  #atmosphere{position:fixed;inset:0;pointer-events:none;z-index:2} .ui{z-index:3}
+  @media(max-width:760px){#immersion{font-size:9px} #weatherMode,#soundBtn{padding:3px}}
 </style>
 </head>
 <body>
@@ -316,6 +323,8 @@
   <canvas id="cs"></canvas>
   <canvas id="cd"></canvas>
 </div>
+
+<canvas id="atmosphere" aria-hidden="true"></canvas>
 
 <div id="title" class="ui">
   <h1>메트로폴리스</h1>
@@ -339,6 +348,10 @@
       <button id="playBtn" title="일시정지 / 계속 (스페이스)">일시정지</button>
       <div class="speedrow" id="speedrow"><button data-s="1" class="on">×1</button><button data-s="2">×2</button><button data-s="4">×4</button></div>
     </div>
+  </div>
+  <div id="immersion">
+    <div class="atmo-row"><span id="weatherLabel">☀ 맑음</span><select id="weatherMode" aria-label="날씨 설정"><option value="auto">날씨 자동</option><option value="clear">맑음</option><option value="rain">비</option><option value="snow">눈</option></select><button id="soundBtn" aria-label="사운드 켜기" aria-pressed="false">♪ 소리 켜기</button></div>
+    <div id="weatherImpact">맑은 하늘 · 영향 없음</div><div id="growthStatus">성장 건물 0 · 최고 1단계</div>
   </div>
   <div class="credit">원작 CLAUDE FABLE 5 · 메트로폴리스 기반 시험판</div>
 </div>
@@ -396,6 +409,9 @@
       <li><b>휠 / + −</b>확대 · 축소</li>
       <li><b>다이얼 드래그</b>시간대 바꾸기 (낮 · 야경)</li>
       <li><b>스페이스</b>일시정지 (시간 · 차량 · 태양 모두 멈춤)</li>
+      <li><b>날씨</b>자동은 12일마다 맑음·비·눈으로 순환합니다. 비는 정체 +3%p, 눈은 +5%p와 행복도 -1. 직접 날씨를 고를 수도 있습니다.</li>
+      <li><b>건물 성장</b>도로 연결된 주택·상점·오피스가 인구·행복도·입주 조건을 10일 유지하면 성장합니다. 2단계 인구 220·행복도 48, 3단계 인구 650·행복도 58. 외형만 성장하며 정원·세금은 그대로입니다.</li>
+      <li><b>사운드</b>소리 켜기를 누르면 잔잔한 합성음과 건설·사건 효과음이 재생됩니다. 소리 끄기로 즉시 음소거할 수 있습니다.</li>
       <li><b>×1 ×2 ×4</b>시간 속도</li>
     </ul>
     <p class="credit2">원작 Claude Fable 5 (metropolis) 기반 · 단일 HTML 파일</p>
@@ -518,13 +534,13 @@ const AMBER=hex('#FFB347'), MAGENTA=hex('#FF5C8A'), TEAL=hex('#4FE3C1');
 const PKEYS=[
   [0.00,'#070B1E','#141A38','#6B76B8',0.02,1.00],
   [0.18,'#0A102A','#1A2144','#7B86C8',0.03,0.98],
-  [0.24,'#2E2A4E','#8A5A74','#E8A084',0.15,0.80],
-  [0.285,'#9FB4D8','#FFD9B0','#FFD9B0',0.32,0.38],
+  [0.24,'#332D66','#CA7D92','#E8A084',0.15,0.80],
+  [0.285,'#849FCE','#FFD6A0','#FFD9B0',0.32,0.38],
   [0.34,'#A8C4DE','#E8DECC','#FFEEDD',0.10,0.06],
   [0.50,'#B8CCDE','#E8E4DC','#FFFFFF',0.00,0.00],
   [0.66,'#B0C2D8','#E4DCC8','#FFF2DC',0.06,0.02],
-  [0.735,'#8A9BC8','#FFB347','#FFB347',0.42,0.18],
-  [0.775,'#3E3560','#C86A5E','#FF8A5E',0.25,0.55],
+  [0.735,'#6A80B4','#FFB56A','#FFB347',0.42,0.18],
+  [0.775,'#342D68','#E98272','#FF8A5E',0.25,0.55],
   [0.82,'#131A40','#3A3568','#8B7CC8',0.08,0.88],
   [0.88,'#0A0F28','#181E40','#6B76B8',0.03,1.00],
   [1.00,'#070B1E','#141A38','#6B76B8',0.02,1.00]
@@ -852,13 +868,14 @@ function civicMetrics(){
   let roadCap=0;
   for(let i=0;i<N*N;i++) if(city.T[i]===T_ROAD||city.T[i]===T_BRIDGE) roadCap+=civic.wide.has(i)?CITY_BALANCE.wideCapacity:CITY_BALANCE.roadCapacity;
   const load=sim.pop+city.buildings.reduce((n,b)=>n+(b.kind==='house'?b.fl*2:b.kind==='shop'?24:b.kind==='factory'?45:8),0);
-  civic.traffic=clamp(Math.round((load/Math.max(1,roadCap)-0.65)*70),0,100);
+  civic.traffic=clamp(clamp(Math.round((load/Math.max(1,roadCap)-0.65)*70),0,100)+IMMERSION.weather[atmo.kind].traffic,0,100);
   const wasteCap=city.buildings.filter(b=>b.kind==='waste'&&b.conn).length*CITY_BALANCE.wasteCapacity;
   civic.waste=clamp(Math.round((sim.pop-wasteCap)/CITY_BALANCE.wasteCapacity*100),0,100);
   const atRisk=city.buildings.filter(b=>b.kind!=='fire'&&b.kind!=='waste');
   civic.fireCover=atRisk.length?Math.round(100*atRisk.filter(b=>coveredBy(b,'fire',CITY_BALANCE.fireRadius)).length/atRisk.length):100;
 }
 function civicLog(text){
+  playTone("event");
   civic.log.unshift({month:monthOf(),text}); civic.log=civic.log.slice(0,6);
   showToast(text); renderCivic();
 }
@@ -943,7 +960,7 @@ function computeHappiness(c){
     park=Math.min(park,12);
     h.hapNeg=Math.round(neg); h.hapPos=Math.round(pos+park);
     h.hapTax=Math.round((rates.res-TAX_BASE)*(rates.res>TAX_BASE?-1.6:-0.6));
-    h.hap=clamp(Math.round(HAP_BASE+neg+pos+park+h.hapTax-CITY_BALANCE.wasteMaxPenalty*civic.waste/100-CITY_BALANCE.trafficMaxPenalty*civic.traffic/100+(civic.social&&civic.social.type==='festival'?CITY_BALANCE.festivalHappiness:0)-(civic.social&&civic.social.type==='epidemic'&&!coveredBy(h,'hospital',EFFECT.hospital.r)?CITY_BALANCE.epidemicHappiness:0)),0,100);
+    h.hap=clamp(Math.round(HAP_BASE+neg+pos+park+h.hapTax+IMMERSION.weather[atmo.kind].happiness-CITY_BALANCE.wasteMaxPenalty*civic.waste/100-CITY_BALANCE.trafficMaxPenalty*civic.traffic/100+(civic.social&&civic.social.type==='festival'?CITY_BALANCE.festivalHappiness:0)-(civic.social&&civic.social.type==='epidemic'&&!coveredBy(h,'hospital',EFFECT.hospital.r)?CITY_BALANCE.epidemicHappiness:0)),0,100);
   }
   for(const s of c.buildings){
     if(s.kind==='shop'){
@@ -1016,6 +1033,7 @@ function distribute(){
 function simInit(){
   civic={wide:new Set(),traffic:0,waste:0,fireCover:0,repair:0,economy:null,social:null,log:[],flash:null};
   rates={res:TAX_BASE,com:TAX_BASE,ind:TAX_BASE}; loan={bal:0,inst:0}; hist=[]; syncFinUi();
+  atmo.mode="auto"; atmo.kind="clear"; atmo.particles.length=0; $("weatherMode").value="auto";
   sim.day=1; sim.acc=0; sim.lastIncome=0; sim.lastUpkeep=0; sim.goalState='run'; sim.unpaid=false; sim.pop=0;
   recalcSim();
   sim.pop=Math.round(sim.demand*0.3);
@@ -1024,6 +1042,7 @@ function simInit(){
 function monthOf(){ return Math.floor((sim.day-1)/DAYS_PER_MONTH)+1; }
 function stepDay(){
   sim.day++;
+  advanceWeather();
   recalcSim();
   /* move-in / move-out */
   const d=sim.demand-sim.pop;
@@ -1032,6 +1051,7 @@ function stepDay(){
   sim.pop=clamp(sim.pop,0,sim.cap);
   recalcSim(); city.pop=sim.pop;
   calcIncome();
+  advanceGrowth();
   /* month end */
   if((sim.day-1)%DAYS_PER_MONTH===0){
     calcIncome(); const inc=sim.estIncome, upk=sim.estUpkeep, repair=civic.repair;
@@ -1065,6 +1085,7 @@ function advanceSim(dt){
 }
 function updateSimHud(){
   renderCivic();
+  renderImmersion();
   const m=monthOf(), dm=(sim.day-1)%DAYS_PER_MONTH+1;
   const net=sim.estIncome-sim.estUpkeep-loanDue()-civic.repair;
   const fmt=n=>(n<0?'-':'')+'₩'+Math.abs(n).toLocaleString('en-US');
@@ -1230,6 +1251,7 @@ function applyTool(t,x,y){
       b.born=performance.now();
     }
   }
+  playTone(t==='demo'?'demo':'build');
   money-=tl.cost;
   rebuildDerived(c);
   relayout();
@@ -1511,7 +1533,7 @@ function drawBuilding(g,b,pal,hs,cols){
       p.lineTo(w.q[2][0],w.q[2][1]); p.lineTo(w.q[3][0],w.q[3][1]); p.closePath();
     }
     for(let k=0;k<4;k++) if(buckets[k]){
-      g.strokeStyle=cssa(WCOL[k],wa*0.28); g.lineWidth=2.2;
+      g.strokeStyle=cssa(WCOL[k],wa*0.48); g.lineWidth=3.0;
       g.stroke(buckets[k]);                       // cheap halo
       g.fillStyle=cssa(WCOL[k],wa);
       g.fill(buckets[k]);
@@ -1526,6 +1548,12 @@ function drawBuilding(g,b,pal,hs,cols){
       for(const seg of s.segs) g.fillRect(seg[0],seg[1],seg[2],seg[3]);
       g.shadowBlur=0;
     }
+  }
+  if((b.level||1)>1){
+    const p=b.roofPt, c=b.level===3?'#FFD17A':'#65E8D0';
+    g.strokeStyle=c; g.lineWidth=1.4;
+    g.beginPath();g.moveTo(p[0]-V.U*.32,p[1]);g.lineTo(p[0],p[1]-V.U*.35);g.lineTo(p[0]+V.U*.32,p[1]);g.stroke();
+    if(b.level===3){g.fillStyle=c;g.beginPath();g.arc(p[0],p[1]-V.U*.47,1.6,0,TAU);g.fill();}
   }
   drawEmblem(g,b,pal);
   /* roof furniture */
@@ -2129,6 +2157,8 @@ document.addEventListener('wheel',e=>{ if(e.target.closest&&e.target.closest('#i
 function act(){ lastAct=performance.now(); }
 
 function plaqueExtra(b){
+  const levelText=["기본","성장","번영"];
+  if(["house","shop","office"].includes(b.kind)) return " · "+(b.level||1)+"단계 "+levelText[(b.level||1)-1]+(b.kind==="house"?" · 입주 "+b.occ+"/"+b.cap+" · 행복도 "+b.hap:"")+(b.conn?"":" · 도로 미연결");
   if(!b.conn&&b.kind) return ' · 도로 미연결';
   switch(b.kind){
     case 'house': return ' · 입주 '+b.occ+'/'+b.cap+' · 행복도 '+b.hap+(b.hapNeg?' (시설 '+b.hapNeg+')':'')+(b.hapPos?' (+'+b.hapPos+')':'');
@@ -2306,6 +2336,8 @@ function frame(ts){
 
   /* lit-window state vector */
   drawDynamic(now,dt);
+  drawAtmosphere(now,simRun?dt:0);
+  advanceAudio(now);
 
   if(mouseMoved) pick();
   updateClock();
@@ -2323,10 +2355,101 @@ function boot(){
   regen(h||null,true);
   addEventListener('resize',()=>{
     clearTimeout(boot._r);
-    boot._r=setTimeout(()=>{ relayout(); },140);
+    boot._r=setTimeout(()=>{ if(innerWidth<=760)$("civicPanel").open=false; relayout(); },140);
   });
   requestAnimationFrame(ts=>{ lastTs=ts; requestAnimationFrame(frame); });
 }
+/* IMMERSION BALANCE: visual upgrades do not change capacity, jobs or taxes. */
+const IMMERSION=Object.freeze({weatherDays:12,particles:110,reducedParticles:24,growthDays:10,
+  levels:[null,null,{population:220,happiness:48,occupancy:.45,height:1.45},{population:650,happiness:58,occupancy:.70,height:1.95}],
+  weather:{clear:{name:'☀ 맑음',traffic:0,happiness:0},rain:{name:'☂ 비',traffic:3,happiness:0},snow:{name:'❄ 눈',traffic:5,happiness:-1}}});
+const atmo={kind:'clear',mode:'auto',particles:[],width:0,height:0};
+const atmosphere=$('atmosphere'), actx=atmosphere.getContext('2d');
+function setWeather(kind,notify=false){
+  if(!IMMERSION.weather[kind]) return;
+  const changed=atmo.kind!==kind; atmo.kind=kind; atmo.particles.length=0; staticDirty=true;
+  if(city){recalcSim();updateHud();}
+  if(notify&&changed)showToast(IMMERSION.weather[kind].name+' · '+(atmo.mode==='auto'?'자동 날씨':'직접 선택'));
+}
+function advanceWeather(){if(atmo.mode==='auto')setWeather(['clear','rain','snow','clear'][Math.floor((sim.day-1)/IMMERSION.weatherDays)%4],true);}
+function renderImmersion(){
+  $('weatherLabel').textContent=IMMERSION.weather[atmo.kind].name;
+  const left=IMMERSION.weatherDays-((sim.day-1)%IMMERSION.weatherDays);
+  $('weatherImpact').textContent=({clear:'맑은 하늘 · 영향 없음',rain:'정체 +3%p · 촉촉한 거리',snow:'정체 +5%p · 행복도 -1'})[atmo.kind]+(atmo.mode==='auto'?' · '+left+'일 후 전환':' · 수동');
+  let n=0,max=1;for(const b of city.buildings){if((b.level||1)>1)n++;max=Math.max(max,b.level||1);}
+  $('growthStatus').textContent='성장 건물 '+n+' · 최고 '+max+'단계';
+}
+$('weatherMode').addEventListener('change',e=>{atmo.mode=e.target.value;if(atmo.mode==='auto')advanceWeather();else setWeather(atmo.mode,true);renderImmersion();});
+function advanceGrowth(){
+  let changed=false,count=0;
+  for(const b of city.buildings){
+    if(!['house','shop','office'].includes(b.kind))continue;
+    b.level=b.level||1; if(b.level>=3)continue;
+    const goal=IMMERSION.levels[b.level+1], hap=b.kind==='house'?b.hap:sim.avgHap;
+    const occupied=b.kind!=='house'||(b.cap>0&&b.occ/b.cap>=goal.occupancy);
+    if(!b.conn||sim.pop<goal.population||hap<goal.happiness||!occupied){b.growthDays=0;continue;}
+    b.growthDays=(b.growthDays||0)+1;if(b.growthDays<IMMERSION.growthDays)continue;
+    b.growthDays=0;b.level++;count++;changed=true;
+    if(!b.baseTiers){b.baseTiers=b.tiers.map(t=>({...t}));b.baseCol=b.col.slice();}
+    const h=IMMERSION.levels[b.level].height;
+    b.tiers=b.baseTiers.map(t=>({...t,f0:t.f0*h,f1:t.f1*h}));
+    const top=b.tiers[b.tiers.length-1];
+    b.tiers.push({x:top.x+top.w*.18,y:top.y+top.d*.18,w:top.w*.64,d:top.d*.64,f0:top.f1,f1:top.f1+(b.level===3?2:1)});
+    b.roof=0;b.col=mixc(b.baseCol,b.level===3?[150,188,218]:[151,203,184],.28);
+    b.born=performance.now();
+  }
+  if(changed){relayout();growUntil=performance.now()+500;playTone('growth');showToast('✦ 건물 '+count+'개 성장 · 더 높은 스카이라인');renderImmersion();}
+}
+function drawAtmosphere(now,dt){
+  const w=innerWidth,h=innerHeight,dpr=Math.min(devicePixelRatio||1,1.5);
+  if(atmo.width!==w||atmo.height!==h){atmo.width=w;atmo.height=h;atmosphere.width=w*dpr;atmosphere.height=h*dpr;atmosphere.style.width=w+'px';atmosphere.style.height=h+'px';}
+  actx.setTransform(dpr,0,0,dpr,0,0);actx.clearRect(0,0,w,h);
+  if(atmo.kind==='clear')return;
+  const rain=atmo.kind==='rain',g=actx;
+  g.fillStyle=rain?'rgba(32,46,76,.14)':'rgba(191,217,239,.07)';g.fillRect(0,0,w,h);
+  const cap=reduced?IMMERSION.reducedParticles:Math.min(IMMERSION.particles,Math.round(w*h/11000));
+  while(atmo.particles.length<cap)atmo.particles.push({x:Math.random()*w,y:Math.random()*h,r:1+Math.random()*1.7,v:rain?420+Math.random()*190:22+Math.random()*29,phase:Math.random()*TAU});
+  g.lineWidth=1;g.strokeStyle=PAL.night>.5?'rgba(170,205,244,.45)':'rgba(182,213,240,.62)';g.fillStyle='rgba(244,249,255,.85)';
+  if(rain)g.beginPath();
+  for(const p of atmo.particles){p.y+=p.v*dt;p.x+=(rain?-110:Math.sin(now/1600+p.phase)*14)*dt;
+    if(p.y>h+20){p.y=-20;p.x=Math.random()*w;}if(p.x< -20)p.x=w+10;if(p.x>w+20)p.x=-10;
+    if(rain){g.moveTo(p.x,p.y);g.lineTo(p.x-4,p.y+14);}else{g.beginPath();g.arc(p.x,p.y,p.r,0,TAU);g.fill();}}
+  if(rain)g.stroke();
+}
+const audio={ctx:null,master:null,on:false,next:0,step:0};
+function note(freq,start,duration,gain=.04,type='sine'){
+  if(!audio.ctx||!audio.on)return;
+  const o=audio.ctx.createOscillator(),v=audio.ctx.createGain();o.type=type;o.frequency.value=freq;
+  v.gain.setValueAtTime(0,start);v.gain.linearRampToValueAtTime(gain,start+.025);v.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  o.connect(v);v.connect(audio.master);o.start(start);o.stop(start+duration+.02);o.onended=()=>{o.disconnect();v.disconnect();};
+}
+function playTone(kind){
+  if(!audio.on||!audio.ctx||document.hidden)return;const t=audio.ctx.currentTime;
+  const seq={build:[392,523.25],demo:[220,164.81],event:[523.25,659.25,523.25],growth:[523.25,659.25,783.99]}[kind]||[440];
+  seq.forEach((f,i)=>note(f,t+i*.1,.24,.06,'triangle'));
+}
+async function toggleSound(){
+  try{
+    if(!audio.ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)throw Error('이 브라우저는 합성음을 지원하지 않습니다');audio.ctx=new A();audio.master=audio.ctx.createGain();audio.master.connect(audio.ctx.destination);}
+    audio.on=!audio.on;if(audio.on){await audio.ctx.resume();audio.master.gain.setValueAtTime(.4,audio.ctx.currentTime);audio.next=0;playTone('build');}else{audio.master.gain.setValueAtTime(0,audio.ctx.currentTime);await audio.ctx.suspend();}
+    $('soundBtn').textContent=audio.on?'♪ 소리 끄기':'♪ 소리 켜기';$('soundBtn').setAttribute('aria-label',audio.on?'사운드 끄기':'사운드 켜기');$('soundBtn').setAttribute('aria-pressed',String(audio.on));
+  }catch(e){audio.on=false;showToast('사운드: '+e.message);}
+}
+$('soundBtn').addEventListener('click',toggleSound);
+function advanceAudio(now){
+  if(!audio.on||!audio.ctx||audio.ctx.state!=='running'||document.hidden||!playing||!$('info').hidden||now<audio.next)return;
+  audio.next=now+1800;const melody=[261.63,329.63,392,329.63,293.66,349.23,440,349.23],f=melody[audio.step++%melody.length],t=audio.ctx.currentTime;
+  note(f*(PAL.night>.5?.5:1),t,1.5,.035);note(f/2,t,.9,.018,'triangle');
+}
+document.addEventListener('visibilitychange',()=>{if(audio.master&&audio.on)audio.master.gain.setValueAtTime(document.hidden?0:.4,audio.ctx.currentTime);});
+/* QA-only diagnostics, never enabled for regular play. */
+if(new URLSearchParams(location.search).has('qa'))window.cityQA={
+  state:()=>({weather:atmo.kind,mode:atmo.mode,particles:atmo.particles.length,day:sim.day,pop:sim.pop,happiness:sim.avgHap,traffic:civic.traffic,levels:city.buildings.map(b=>b.level||1),audio:{on:audio.on,state:audio.ctx?.state},time:timeT,buildings:city.buildings.length}),
+  time:t=>{timeT=t;staticDirty=true;},days:n=>{for(let i=0;i<n;i++)stepDay();updateHud();},
+  growthFixture:()=>{sim.pop=800;sim.avgHap=70;for(const b of city.buildings){b.conn=true;b.hap=70;b.cap=Math.max(1,b.cap||20);b.occ=b.cap;}for(let i=0;i<20;i++)advanceGrowth();},
+  build:()=>{for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(canApply('house',x,y).ok)return applyTool('house',x,y);},
+  event:()=>triggerCityEvent('festival'),regen:()=>regen('METRO-IMMERSION',false)};
+
 try{ boot(); }
 catch(err){
   const e=$('err'); e.hidden=false;
